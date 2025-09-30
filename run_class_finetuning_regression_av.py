@@ -149,7 +149,7 @@ def get_args():
     parser.add_argument('--num_frames', type=int, default= 16)
     parser.add_argument('--sampling_rate', type=int, default= 4)
     parser.add_argument('--data_set', default='Kinetics-400', choices=['Kinetics-400', 'SSV2', 'UCF101', 'HMDB51','image_folder',
-                        'WEREWOLF-XL'], type=str, help='dataset')
+                        'WEREWOLF-XL', 'blemore'], type=str, help='dataset')
     parser.add_argument('--output_dir', default='',
                         help='path where to save, empty for no saving')
     parser.add_argument('--log_dir', default=None,
@@ -189,7 +189,7 @@ def get_args():
 
     parser.add_argument('--enable_deepspeed', action='store_true', default=False)
 
-    parser.add_argument('--loss', type=str, default='mse', choices=['mse', 'l1', 'smooth_l1', 'ccc', 'pcc', 'mse+kl'],
+    parser.add_argument('--loss', type=str, default='mse', choices=['mse', 'l1', 'smooth_l1', 'ccc', 'pcc', 'mse+kl', 'kl_div', 'ce'],
                         help='Loss function for regression task')
     parser.add_argument('--val_metric', type=str, default='acc', choices=['acc', 'mae', 'mse', 'rmse', 'pcc', 'ccc'],
                         help='validation metric for saving best ckpt')
@@ -540,6 +540,11 @@ def main(args, ds_init):
     elif args.loss == 'pcc':
         from regression_metrics import PCCLoss
         criterion = PCCLoss(label_dim=args.nb_classes)
+    elif args.loss == 'kl_div':
+        from regression_metrics import KLDivLogitLoss
+        criterion = KLDivLogitLoss()
+    elif args.loss == 'ce':
+        criterion = torch.nn.CrossEntropyLoss()
     else:
         raise NotImplementedError
 

@@ -158,6 +158,11 @@ def validation_one_epoch(data_loader, model, device, args):
     elif args.loss == 'pcc':
         from regression_metrics import PCCLoss
         criterion = PCCLoss(label_dim=args.nb_classes)
+    elif args.loss == 'kl_div':
+        from regression_metrics import KLDivLogitLoss
+        criterion = KLDivLogitLoss()
+    elif args.loss == 'ce':
+        criterion = torch.nn.CrossEntropyLoss()
     else:
         raise NotImplementedError
     # criterion = torch.nn.CrossEntropyLoss()
@@ -233,6 +238,11 @@ def final_test(data_loader, model, device, file, args):
     elif args.loss == 'pcc':
         from regression_metrics import PCCLoss
         criterion = PCCLoss(label_dim=args.nb_classes)
+    elif args.loss == 'kl_div':
+        from regression_metrics import KLDivLogitLoss
+        criterion = KLDivLogitLoss()
+    elif args.loss == 'ce':
+        criterion = torch.nn.CrossEntropyLoss()
     else:
         raise NotImplementedError
 

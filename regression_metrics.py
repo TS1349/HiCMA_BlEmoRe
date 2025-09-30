@@ -3,6 +3,7 @@ import numpy as np
 from scipy.stats import pearsonr
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 def cal_acc(output, target, return_finegrained=False):
     """
@@ -189,3 +190,11 @@ class PCCLoss(nn.Module):
         pcc_loss = 1.0 - pcc # scalar
 
         return pcc_loss
+
+class KLDivLogitLoss(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def __call__(self, input, target):
+        input = F.log_softmax(input)
+        return F.kl_div(input, target, reduction="batchmean")

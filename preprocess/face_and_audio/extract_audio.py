@@ -5,20 +5,21 @@ import subprocess
 import os
 import glob
 
-dataset = "MAFW"
-data_path = os.path.expanduser(f'~/AC/Dataset/{dataset}')
-video_dir = os.path.join(data_path, 'data/clips')
+dataset = "blemore"
+video_dir = os.path.expanduser(f'~/datasets/blemore/part_01/')
+print(video_dir)
 # save dir
-audio_dir = os.path.join(data_path, 'data/audio_16k')
+audio_dir = os.path.expanduser('~/datasets/blemore_audio_16k')
+print(audio_dir)
+
 if not os.path.exists(audio_dir):
     os.makedirs(audio_dir)
 
 audio_sample_rate = 16000
 audio_file_ext = 'wav'
 
-num_samples = 10045
-video_files = sorted(glob.glob(os.path.join(video_dir, f'*.mp4')))
-assert len(video_files) == num_samples, f"Error: wrong number of videos, expected {num_samples}, got {len(video_files)}!"
+video_files = sorted(glob.glob(os.path.join(video_dir, f'*.mov')))
+
 for video_file in video_files:
     sample_name = os.path.basename(os.path.splitext(video_file)[0])
     audio_file = os.path.join(audio_dir, f'{sample_name}.{audio_file_ext}')
