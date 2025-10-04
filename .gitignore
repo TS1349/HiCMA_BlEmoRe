@@ -1,2 +1,5 @@
 __pycache__/
 *.pth
+saved/
+final_outputs/
+blemore-common/

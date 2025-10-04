@@ -1,0 +1,3 @@
+[submodule "blemore-common"]
+	path = blemore-common
+	url = https://github.com/BlEmoRe/blemore-common.git

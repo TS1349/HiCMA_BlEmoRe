@@ -12,7 +12,7 @@ sr=4
 # parameter
 lr=1e-3
 epochs=100
-loss='ce'
+loss='kl_div'
 splits=(1 2 3 4 5 6)
 val_metric='ccc'
 for split in "${splits[@]}"
@@ -28,8 +28,8 @@ MODEL_PATH="./saved/model/pretraining/${pretrain_dataset}/audio_visual/${model_d
 
 # OMP_NUM_THREADS=1 CUDA_VISIBLE_DEVICES=0,1 python -m torch.distributed.launch --nproc_per_node=2 \
 # CUDA_VISIBLE_DEVICES=0,1 python -m torch.distributed.launch --nproc_per_node=2 \
-python -m torch.distributed.launch --nproc_per_node=1 \
-    --master_port 12496 \
+CUDA_VISIBLE_DEVICES=1 python -m torch.distributed.launch --nproc_per_node=1 \
+    --master_port 12497 \
     run_class_finetuning_regression_av.py \
     --model avit_dim512_patch16_160_a256 \
     --data_set ${finetune_dataset} \
