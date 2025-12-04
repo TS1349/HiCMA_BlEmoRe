@@ -11,13 +11,13 @@ input_size_audio=256
 sr=4
 # parameter
 lr=1e-3
-epochs=100
-loss='kl_div'
-splits=(1 2 3 4 5 6)
+epochs=80
+loss='ce'
+splits=(4 5 6)
 val_metric='ccc'
 for split in "${splits[@]}"
 do
-  OUTPUT_DIR="./saved/model/finetuning/${finetune_dataset}/audio_visual/${pretrain_dataset}_${model_dir}/checkpoint-${ckpt}/eval_split0${split}_lr_${lr}_epoch_${epochs}_size${input_size}_a${input_size_audio}_sr${sr}_server${server}_loss_${loss}"
+  OUTPUT_DIR="./saved/model/finetuning/${finetune_dataset}/audio_visual/${pretrain_dataset}_${model_dir}/checkpoint-${ckpt}/eval_split0${split}_lr_${lr}_epoch_${epochs}_size${input_size}_a${input_size_audio}_sr${sr}_server${server}_loss_${loss}_TEST_SCRIPT"
   if [ ! -d "$OUTPUT_DIR" ]; then
     mkdir -p $OUTPUT_DIR
   fi

@@ -321,6 +321,7 @@ def final_test(data_loader, model, device, file, args):
 
 
 def merge(eval_path, num_tasks, args, best=False):
+    print(f"DEBUG: {num_tasks}")
     dict_feats = {}
     dict_label = {}
     dict_pos = {}

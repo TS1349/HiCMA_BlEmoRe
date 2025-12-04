@@ -11,9 +11,9 @@ input_size_audio=256
 sr=4
 # parameter
 lr=1e-3
-epochs=100
+epochs=80
 loss='ce'
-splits=(1 2 3 4 5 6)
+splits=(1 2 3)
 val_metric='ccc'
 for split in "${splits[@]}"
 do

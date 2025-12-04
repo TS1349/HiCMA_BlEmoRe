@@ -13,6 +13,7 @@ import video_transforms as video_transforms
 import volume_transforms as volume_transforms
 import random
 import glob
+import math
 
 import torchaudio
 
@@ -37,7 +38,6 @@ class VideoClsDataset(Dataset):
         test_num_crop=3,
         args=None,
         ):
-
         self.anno_path = anno_path
         self.data_path = data_path
         self.mode = mode
@@ -495,6 +495,37 @@ class VideoClsDatasetFrame(Dataset):
         else:
             raise NameError('mode {} unkown'.format(self.mode))
 
+    def get_for_feature_extraction(self,index):
+        sample = self.dataset_samples[index]
+        sample_audio = self.dataset_samples_audio[index]
+        buffer, vr, all_index = self.load_video(sample, sample_audio)
+
+        num_samples =  math.ceil(len(all_index) / self.clip_len)
+        buffer_audio = []
+        for i in range(0, num_samples):
+            temporal_start = i * self.clip_len
+            start_frame_idx = all_index[temporal_start]
+            end_frame_idx = all_index[min(temporal_start + self.clip_len-1, len(all_index)-1)]
+            end_frame_idx = min(end_frame_idx+self.frame_sample_rate, len(vr)-1)
+            tmp_audio= self.load_audio(sample_audio, vr, start_frame_idx, end_frame_idx)
+            buffer_audio.append(tmp_audio)
+
+        buffer_audio = torch.stack(buffer_audio, dim=0)
+        buffer = self.data_resize(buffer)
+        buffer = self.data_transform(buffer)
+        if (buffer.shape[1] % self.clip_len != 0):
+            padding_shape = list(buffer.shape)
+            padding_shape[1] = self.clip_len - (buffer.shape[1] % self.clip_len)
+            padding = torch.zeros(padding_shape)
+            buffer = torch.cat([buffer, padding], dim = 1)
+
+        new_buffer_shape = (buffer.shape[0],) + (num_samples, self.clip_len) + buffer.shape[2:]
+        buffer = buffer.view(new_buffer_shape)
+        buffer.transpose_(0,1)
+
+        return buffer, buffer_audio, sample
+
+
     def _aug_frame(
             self,
             buffer,
@@ -625,14 +656,23 @@ class VideoClsDatasetFrame(Dataset):
         assert audio.shape[1] > min_audio_length, f'Error: corrupted audio with length={audio.shape[1]} (min length: {min_audio_length})'
         audio_start_idx = int(audio_start * audio.shape[1])
         audio_end_idx = int(audio_end * audio.shape[1])
-        if (audio_end_idx - audio_start_idx) <= min_audio_length:
-            if audio.shape[1] < self.audio_conf.get('target_length') / 100.0 * self.audio_sample_rate: # 2.56s = 256 / 100
-                # use the whole audio instead if its duration < target duration (i.e., self.audio_conf.get('target_length') / 100.0)
-                pass
-            else:
-                raise Exception(f'Error: wrong calculation of audio clip start and end, too short audio clip with length={audio.shape[1]} (min length: {min_audio_length})')
-        else:
-            audio = audio[:,audio_start_idx:audio_end_idx].numpy()
+
+        audio = audio[:,audio_start_idx:audio_end_idx]
+
+        idx_difference = audio_end_idx - audio_start_idx
+        if idx_difference <= min_audio_length:
+            # if audio.shape[1] < self.audio_conf.get('target_length') / 100.0 * self.audio_sample_rate: # 2.56s = 256 / 100
+            #     # use the whole audio instead if its duration < target duration (i.e., self.audio_conf.get('target_length') / 100.0)
+            #     pass
+            # else:
+                padding_shape = list(audio.shape)
+                padding_shape[1] = min_audio_length - idx_difference + 1
+                print(audio.shape)
+                print(padding_shape)
+
+                audio = torch.cat([audio, torch.zeros(padding_shape)], dim = 1)
+        audio = audio.numpy()
+
 
         # fbank
         fbank, _ = self._wav2fbank(audio, sr=self.audio_sample_rate) # (Time, Freq), i.e., (seq_len, num_mel_bin)
